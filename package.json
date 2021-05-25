@@ -1,0 +1,23 @@
+{
+    "name": "alcazar",
+    "version": "0.0.1",
+    "description": "The password-less password manager",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/RyanHopkins7/alcazar.git"
+    },
+    "keywords": [],
+    "author": "Ryan Hopkins",
+    "license": "",
+    "bugs": {
+        "url": "https://github.com/RyanHopkins7/alcazar/issues"
+    },
+    "homepage": "https://github.com/RyanHopkins7/alcazar#readme",
+    "devDependencies": {
+        "electron": "^13.0.0"
+    }
+}
