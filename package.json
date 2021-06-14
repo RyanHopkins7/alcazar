@@ -19,5 +19,12 @@
     "homepage": "https://github.com/RyanHopkins7/alcazar#readme",
     "devDependencies": {
         "electron": "^13.0.0"
+    },
+    "dependencies": {
+        "electron-reload": "^1.5.0",
+        "immutable": "^4.0.0-rc.12",
+        "install": "^0.13.0",
+        "npm": "^7.14.0",
+        "react": "^17.0.2"
     }
 }
