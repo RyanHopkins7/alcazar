@@ -7,18 +7,25 @@ import { fromJS } from 'immutable'
 function PasswordListItem(props) {
     // Password in PasswordList
     return (
-        <div className="password-list-item">{props.name}</div>
+        <div className="password-list-item"
+            onClick={() => { props.setSelectedPassword(props.index) }}>{props.name}</div>
     )
 }
 
 function PasswordList(props) {
     // Vertical scrolling list of all passwords
-    const [passwords, _] = useState(props.passwords)
 
     return (
         <div className="password-list">
-            {passwords.map(
-                (password, i) => <PasswordListItem name={password.get('name')} key={i}></PasswordListItem>
+            {props.passwords.map(
+                (password, i) => (
+                    <PasswordListItem
+                        name={password.get('name')}
+                        index={i}
+                        setSelectedPassword={props.setSelectedPassword}
+                        key={i}>
+                    </PasswordListItem>
+                )
             ).toJS()}
         </div>
     )
@@ -39,17 +46,23 @@ function PasswordDisplay(props) {
 }
 
 export default function App(props) {
+    const [selectedPassword, setSelectedPassword] = useState()
     const [passwords, setPasswords] = useState(fromJS([
-        { 'name': 'Google' }, 
-        { 'name': 'Facebook' }, 
-        { 'name': 'Netflix' }, 
-        { 'name': 'Apple' }, 
+        { 'name': 'Google' },
+        { 'name': 'Facebook' },
+        { 'name': 'Netflix' },
+        { 'name': 'Apple' },
         { 'name': 'Amazon' }
     ]))
 
+    console.log(selectedPassword)
+
     return (
         <div className="app">
-            <PasswordList passwords={passwords}></PasswordList>
+            <PasswordList
+                passwords={passwords}
+                setSelectedPassword={setSelectedPassword}>
+            </PasswordList>
             <PasswordDisplay></PasswordDisplay>
         </div>
     )
