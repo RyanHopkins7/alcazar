@@ -9,7 +9,8 @@ html, body {
     overflow: hidden;
 }
 
-.password-list, .password-display, .password-edit {
+// TODO: Add padding
+.left-section, .right-section {
     width: 50%;
     display: inline-block;
 }
@@ -24,6 +25,6 @@ html, body {
     background-color: rgba(0,0,0,.1);
 }
 
-.password-edit-form-input {
+.form-input {
     display: block;
 }

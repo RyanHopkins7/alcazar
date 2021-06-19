@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { fromJS } from 'immutable'
+import { List, fromJS } from 'immutable'
 
 // TODO: enable auto compile on reload
 // TODO: set up a local http server instead of using `file`
@@ -9,8 +9,8 @@ function PasswordListItem(props) {
     return (
         <div className="password-list-item"
             onClick={() => {
-                // Don't allow switching if user is editing a password
-                if (!props.editing) {
+                // Don't allow switching if user is creating or editing a password
+                if (props.action === 'read') {
                     props.setSelectedPassword(props.index)
                 }
             }}>{props.name}</div>
@@ -26,33 +26,90 @@ function PasswordList(props) {
                 (password, i) => (
                     <PasswordListItem
                         name={password.get('name')}
-                        editing={props.editing}
+                        action={props.action}
                         index={i}
                         setSelectedPassword={props.setSelectedPassword}
                         key={i}>
                     </PasswordListItem>
                 )
             ).toJS()}
+
+            <button onClick={() => props.setAction('create')}>Create</button>
         </div>
     )
 }
 
 function PasswordDisplay(props) {
     // Display a password in detail
+    const displayedPassword = Number.isInteger(props.selectedPassword) ? props.passwords.get(props.selectedPassword) : null
+
     return (
         <div className="password-display">
-            {props.password
+            {displayedPassword
                 ?
                 <div>
-                    <h2>{props.password.get('name')}</h2>
-                    <p>Username: {props.password.get('username')}</p>
-                    <p>Password: {props.password.get('password')}</p>
+                    <h2>{displayedPassword.get('name')}</h2>
+                    <p>Username: {displayedPassword.get('username')}</p>
+                    <p>Password: {displayedPassword.get('password')}</p>
 
-                    <button onClick={() => props.setEditing(true)}>Edit</button>
+                    <button onClick={() => props.setAction('edit')}>Edit</button>
+                    {/* TODO: figure out why deleting a password doesn't collapse elements below it */}
+                    <button onClick={() => props.setPasswords(props.passwords.delete(props.selectedPassword))}>Delete</button>
                 </div>
                 :
                 <div></div>
             }
+        </div>
+    )
+}
+
+function PasswordCreate(props) {
+    const [formData, setFormData] = useState(fromJS({'name': '', 'username': '', 'password': ''}))
+
+    const handleInputChange = e => {
+        setFormData(prevFromData => prevFromData.set(e.target.name, e.target.value))
+    }
+
+    return (
+        <div className="password-create">
+            <form className="password-create-form" onSubmit={e => {
+                e.preventDefault()
+
+                // Create new password from FormData
+                props.setPasswords(props.passwords.push(formData))
+                props.setAction('read')
+            }}>
+                <label className="form-input">
+                    Name:
+                    <input
+                        type="text"
+                        name="name"
+                        value={formData.get('name')}
+                        onChange={e => handleInputChange(e)} />
+                </label>
+
+                <label className="form-input">
+                    Username:
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.get('username')}
+                        onChange={e => handleInputChange(e)} />
+                </label>
+
+                <label className="form-input">
+                    Password:
+                    <input
+                        type="text"
+                        name="password"
+                        value={formData.get('password')}
+                        onChange={e => handleInputChange(e)} />
+                </label>
+
+                <input type="submit" value="Submit" />
+                <button onClick={() => props.setAction('read')}>Cancel</button>
+
+            </form>
         </div>
     )
 }
@@ -62,7 +119,7 @@ function PasswordEdit(props) {
     const [formData, setFormData] = useState(props.passwords.get(props.selectedPassword))
 
     const handleInputChange = e => {
-        setFormData(props.passwords.get(props.selectedPassword).set(e.target.name, e.target.value))
+        setFormData(prevFromData => prevFromData.set(e.target.name, e.target.value))
     }
 
     return (
@@ -72,84 +129,98 @@ function PasswordEdit(props) {
 
                 // Update password entry based on formData
                 props.setPasswords(props.passwords.set(props.selectedPassword, formData))
-                props.setEditing(false)
+                props.setAction('read')
             }}>
-                <label className="password-edit-form-input">
+                <label className="form-input">
                     Name:
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="name"
                         value={formData.get('name')}
                         onChange={e => handleInputChange(e)} />
                 </label>
 
-                <label className="password-edit-form-input">
+                <label className="form-input">
                     Username:
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="username"
                         value={formData.get('username')}
                         onChange={e => handleInputChange(e)} />
                 </label>
 
-                <label className="password-edit-form-input">
+                <label className="form-input">
                     Password:
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="password"
                         value={formData.get('password')}
                         onChange={e => handleInputChange(e)} />
                 </label>
 
-                <input className="password-edit-form-input" type="submit" value="Submit" />
+                <input type="submit" value="Submit" />
+                <button onClick={() => props.setAction('read')}>Cancel</button>
             </form>
         </div>
     )
 }
 
+// Example passwords data
+// {
+//     'name': 'Google',
+//     'username': 'ryanhopk',
+//     'password': 'q*Tdf^Ou'
+// }
+
 export default function App(props) {
-    const [editing, setEditing] = useState(false) // Is the user editing the selected password?
+    const [action, setAction] = useState('read') // What action is the user currently taking?
     const [selectedPassword, setSelectedPassword] = useState(null) // Numerical index in passwords
-    const [passwords, setPasswords] = useState(fromJS([
-        {
-            'name': 'Google',
-            'username': 'ryanhopk',
-            'password': 'q*Tdf^Ou'
-        },
-        {
-            'name': 'Amazon',
-            'username': 'ryhopkins',
-            'password': 'p*sdi6AQ'
-        },
-        {
-            'name': 'Netflix',
-            'username': 'ducky',
-            'password': '8ziA73(!'
-        }
-    ]))
+    const [passwords, setPasswords] = useState(List())
 
     return (
         <div className="app">
-            <PasswordList
-                editing={editing}
-                passwords={passwords}
-                setSelectedPassword={setSelectedPassword}>
-            </PasswordList>
+            <div className="left-section">
+                {/* Left section used for displaying passwords */}
 
-            {editing
-                ?
-                <PasswordEdit
-                    setPasswords={setPasswords}
-                    setEditing={setEditing}
-                    selectedPassword={selectedPassword}
-                    passwords={passwords}>
-                </PasswordEdit>
-                :
-                <PasswordDisplay
-                    password={Number.isInteger(selectedPassword) ? passwords.get(selectedPassword) : null}
-                    setEditing={setEditing}>
-                </PasswordDisplay>
-            }
+                <PasswordList
+                    action={action}
+                    passwords={passwords}
+                    setAction={setAction}
+                    setSelectedPassword={setSelectedPassword}>
+                </PasswordList>
+            </div>
+
+            <div className="right-section">
+                {/* Right section used for user actions */}
+
+                {action === 'read' &&
+                    <PasswordDisplay
+                        setPasswords={setPasswords}
+                        setAction={setAction}
+                        passwords={passwords}
+                        selectedPassword={selectedPassword}>
+                    </PasswordDisplay>
+                }
+
+                {action === 'create' &&
+                    <PasswordCreate
+                        setPasswords={setPasswords}
+                        setAction={setAction}
+                        passwords={passwords}
+                        selectedPassword={selectedPassword}>
+                    </PasswordCreate>
+                }
+
+                {action === 'edit' &&
+                    <PasswordEdit
+                        setPasswords={setPasswords}
+                        setAction={setAction}
+                        passwords={passwords}
+                        selectedPassword={selectedPassword}>
+                    </PasswordEdit>
+                }
+            </div>
+
         </div>
     )
 }
