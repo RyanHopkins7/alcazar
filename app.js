@@ -31,31 +31,33 @@ function PasswordList(props) {
     )
 }
 
-function PasswordDisplayItem(props) {
-    // Password being displayed in PasswordDisplay
-    return (
-        <div className="password-display-item"></div>
-    )
-}
-
 function PasswordDisplay(props) {
     // Component dedicated to displaying passwords
     return (
-        <div className="password-display"></div>
+        <div className="password-display">
+            {props.selectedPassword 
+                ?
+                <h2>{props.selectedPassword.get('name')}</h2>
+                :
+                <div></div>
+            }
+        </div>
     )
 }
 
 export default function App(props) {
-    const [selectedPassword, setSelectedPassword] = useState()
+    const [selectedPassword, setSelectedPassword] = useState(null) // Numerical index in passwords
     const [passwords, setPasswords] = useState(fromJS([
-        { 'name': 'Google' },
+        { 
+            'name': 'Google',
+            'username': 'ryanhopk',
+            'password': 'q*Tdf^Ou'
+        },
         { 'name': 'Facebook' },
         { 'name': 'Netflix' },
         { 'name': 'Apple' },
         { 'name': 'Amazon' }
     ]))
-
-    console.log(selectedPassword)
 
     return (
         <div className="app">
@@ -63,7 +65,9 @@ export default function App(props) {
                 passwords={passwords}
                 setSelectedPassword={setSelectedPassword}>
             </PasswordList>
-            <PasswordDisplay></PasswordDisplay>
+            <PasswordDisplay
+                selectedPassword={Number.isInteger(selectedPassword) ? passwords.get(selectedPassword) : null}>
+            </PasswordDisplay>
         </div>
     )
 }
