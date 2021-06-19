@@ -9,7 +9,7 @@ html, body {
     overflow: hidden;
 }
 
-.password-list, .password-display {
+.password-list, .password-display, .password-edit {
     width: 50%;
     display: inline-block;
 }
@@ -22,4 +22,8 @@ html, body {
 
 .password-list-item:hover {
     background-color: rgba(0,0,0,.1);
+}
+
+.password-edit-form-input {
+    display: block;
 }
