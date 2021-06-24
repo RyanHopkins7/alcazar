@@ -3,6 +3,7 @@ import { List, fromJS } from 'immutable'
 
 // TODO: enable auto compile on reload
 // TODO: set up a local http server instead of using `file`
+// IDEA: password details displayed by slide out animation which shows that vault is unlocked/locked
 
 function PasswordListItem(props) {
     // Password in PasswordList
@@ -10,7 +11,7 @@ function PasswordListItem(props) {
         <div className="password-list-item"
             onClick={() => {
                 // Don't allow switching if user is creating or editing a password
-                if (props.action === 'read') {
+                if (props.action === 'view') {
                     props.setSelectedPassword(props.index)
                 }
             }}>{props.name}</div>
@@ -77,7 +78,7 @@ function PasswordCreate(props) {
 
                 // Create new password from FormData
                 props.setPasswords(props.passwords.push(formData))
-                props.setAction('read')
+                props.setAction('view')
             }}>
                 <label className="form-input">
                     Name:
@@ -107,7 +108,7 @@ function PasswordCreate(props) {
                 </label>
 
                 <input type="submit" value="Submit" />
-                <button onClick={() => props.setAction('read')}>Cancel</button>
+                <button onClick={() => props.setAction('view')}>Cancel</button>
 
             </form>
         </div>
@@ -129,7 +130,7 @@ function PasswordEdit(props) {
 
                 // Update password entry based on formData
                 props.setPasswords(props.passwords.set(props.selectedPassword, formData))
-                props.setAction('read')
+                props.setAction('view')
             }}>
                 <label className="form-input">
                     Name:
@@ -159,7 +160,7 @@ function PasswordEdit(props) {
                 </label>
 
                 <input type="submit" value="Submit" />
-                <button onClick={() => props.setAction('read')}>Cancel</button>
+                <button onClick={() => props.setAction('view')}>Cancel</button>
             </form>
         </div>
     )
@@ -173,7 +174,7 @@ function PasswordEdit(props) {
 // }
 
 export default function App(props) {
-    const [action, setAction] = useState('read') // What action is the user currently taking?
+    const [action, setAction] = useState('view') // What action is the user currently taking?
     const [selectedPassword, setSelectedPassword] = useState(null) // Numerical index in passwords
     const [passwords, setPasswords] = useState(List())
 
@@ -193,7 +194,7 @@ export default function App(props) {
             <div className="right-section">
                 {/* Right section used for user actions */}
 
-                {action === 'read' &&
+                {action === 'view' &&
                     <PasswordDisplay
                         setPasswords={setPasswords}
                         setAction={setAction}

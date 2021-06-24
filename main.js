@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron')
+const { app, ipcMain, BrowserWindow } = require('electron')
 const path = require('path')
 const isDev = !app.isPackaged
 
@@ -34,4 +34,22 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
+})
+
+// IPC
+
+ipcMain.on('create-password', (event, arg) => {
+    console.log(arg)
+})
+
+ipcMain.on('view-password', (event, arg) => {
+    console.log(arg)
+})
+
+ipcMain.on('update-password', (event, arg) => {
+    console.log(arg)
+})
+
+ipcMain.on('delete-password', (event, arg) => {
+    console.log(arg)
 })
