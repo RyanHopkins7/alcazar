@@ -1,12 +1,15 @@
 const { app, ipcMain, BrowserWindow } = require('electron')
+const Datastore = require('nedb-promises')
 const path = require('path')
+
 const isDev = !app.isPackaged
 
-if (isDev) {
-    require('electron-reload')(__dirname, {
-        electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
-    })
-}
+// TODO: prevent reload on IPC (might be due to NeDB)
+// if (isDev) {
+//     require('electron-reload')(__dirname, {
+//         electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
+//     })
+// }
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -36,20 +39,17 @@ app.on('window-all-closed', () => {
     }
 })
 
+// Create NeDB datastore
+
+const passwordsDB = new Datastore({ filename: './passwords.nedb', autoload: true })
+
 // IPC
 
-ipcMain.on('create-password', (event, arg) => {
-    console.log(arg)
+ipcMain.handle('create-password', async (event, passwordData) => {
+    // TODO: check that no fields are empty
+    return await passwordsDB.insert(passwordData)
 })
 
-ipcMain.on('view-password', (event, arg) => {
-    console.log(arg)
-})
-
-ipcMain.on('update-password', (event, arg) => {
-    console.log(arg)
-})
-
-ipcMain.on('delete-password', (event, arg) => {
-    console.log(arg)
+ipcMain.handle('list-all-passwords', async (event) => {
+    return await passwordsDB.find({}/* TODO: , { name: 1, _id: 1 }*/)
 })

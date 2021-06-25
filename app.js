@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { List, fromJS } from 'immutable'
 
 // TODO: enable auto compile on reload
@@ -65,7 +65,7 @@ function PasswordDisplay(props) {
 }
 
 function PasswordCreate(props) {
-    const [formData, setFormData] = useState(fromJS({'name': '', 'username': '', 'password': ''}))
+    const [formData, setFormData] = useState(fromJS({ 'name': '', 'username': '', 'password': '' }))
 
     const handleInputChange = e => {
         setFormData(prevFromData => prevFromData.set(e.target.name, e.target.value))
@@ -77,6 +77,8 @@ function PasswordCreate(props) {
                 e.preventDefault()
 
                 // Create new password from FormData
+                passwordValt.create(formData.toJS())
+
                 props.setPasswords(props.passwords.push(formData))
                 props.setAction('view')
             }}>
@@ -108,7 +110,7 @@ function PasswordCreate(props) {
                 </label>
 
                 <input type="submit" value="Submit" />
-                <button onClick={() => props.setAction('view')}>Cancel</button>
+                <button onClick={() => { props.setAction('view') }}>Cancel</button>
 
             </form>
         </div>
@@ -177,6 +179,14 @@ export default function App(props) {
     const [action, setAction] = useState('view') // What action is the user currently taking?
     const [selectedPassword, setSelectedPassword] = useState(null) // Numerical index in passwords
     const [passwords, setPasswords] = useState(List())
+
+    useEffect(() => {
+        // Retrieve passwords from NeDB
+        // TODO: prevent sensitive data from being exposed without authentication
+        (async () => {
+            setPasswords(fromJS(await passwordValt.listAll()))
+        })();
+    }, [])
 
     return (
         <div className="app">
