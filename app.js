@@ -46,8 +46,8 @@ function PasswordDisplay(props) {
 
     useEffect(async () => {
         // Retrieve selected password from NeDB
-        const result = await passwordVault.view(props.selectedPasswordID)
-        setDisplayedPassword(result && fromJS(result))
+        const selectedPassword = await passwordVault.view(props.selectedPasswordID)
+        setDisplayedPassword(selectedPassword && fromJS(selectedPassword))
     }, [props.selectedPasswordID])
 
     return (
@@ -71,58 +71,58 @@ function PasswordDisplay(props) {
     )
 }
 
-// function PasswordCreate(props) {
-//     const [formData, setFormData] = useState(fromJS({ 'name': '', 'username': '', 'password': '' }))
+function PasswordCreate(props) {
+    const [formData, setFormData] = useState(fromJS({ 'name': '', 'username': '', 'password': '' }))
 
-//     const handleInputChange = e => {
-//         setFormData(prevFromData => prevFromData.set(e.target.name, e.target.value))
-//     }
+    const handleInputChange = e => {
+        setFormData(prevFromData => prevFromData.set(e.target.name, e.target.value))
+    }
 
-//     return (
-//         <div className="password-create">
-//             <form className="password-create-form" onSubmit={e => {
-//                 e.preventDefault()
+    return (
+        <div className="password-create">
+            <form className="password-create-form" onSubmit={async e => {
+                e.preventDefault()
 
-//                 // Create new password from FormData
-//                 passwordVault.create(formData.toJS())
+                // Create new password from FormData
+                const newPassword = fromJS(await passwordVault.create(formData.toJS()))
 
-//                 props.setPasswords(props.passwords.push(formData))
-//                 props.setAction('view')
-//             }}>
-//                 <label className="form-input">
-//                     Name:
-//                     <input
-//                         type="text"
-//                         name="name"
-//                         value={formData.get('name')}
-//                         onChange={e => handleInputChange(e)} />
-//                 </label>
+                props.setPasswords(props.passwords.push(newPassword))
+                props.setAction('view')
+            }}>
+                <label className="form-input">
+                    Name:
+                    <input
+                        type="text"
+                        name="name"
+                        value={formData.get('name')}
+                        onChange={e => handleInputChange(e)} />
+                </label>
 
-//                 <label className="form-input">
-//                     Username:
-//                     <input
-//                         type="text"
-//                         name="username"
-//                         value={formData.get('username')}
-//                         onChange={e => handleInputChange(e)} />
-//                 </label>
+                <label className="form-input">
+                    Username:
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.get('username')}
+                        onChange={e => handleInputChange(e)} />
+                </label>
 
-//                 <label className="form-input">
-//                     Password:
-//                     <input
-//                         type="text"
-//                         name="password"
-//                         value={formData.get('password')}
-//                         onChange={e => handleInputChange(e)} />
-//                 </label>
+                <label className="form-input">
+                    Password:
+                    <input
+                        type="text"
+                        name="password"
+                        value={formData.get('password')}
+                        onChange={e => handleInputChange(e)} />
+                </label>
 
-//                 <input type="submit" value="Submit" />
-//                 <button onClick={() => { props.setAction('view') }}>Cancel</button>
+                <input type="submit" value="Submit" />
+                <button onClick={() => { props.setAction('view') }}>Cancel</button>
 
-//             </form>
-//         </div>
-//     )
-// }
+            </form>
+        </div>
+    )
+}
 
 // function PasswordEdit(props) {
 //     // Edit a password
@@ -178,7 +178,7 @@ function PasswordDisplay(props) {
 // Example passwords data
 // {
 //     'name': 'Google',
-//     'id': ''
+//     '_id': ''
 // }
 
 export default function App(props) {
@@ -216,16 +216,15 @@ export default function App(props) {
                     </PasswordDisplay>
                 }
 
-                {/* {action === 'create' &&
+                {action === 'create' &&
                     <PasswordCreate
                         setPasswords={setPasswords}
                         setAction={setAction}
-                        passwords={passwords}
-                        selectedPassword={selectedPassword}>
+                        passwords={passwords}>
                     </PasswordCreate>
                 }
 
-                {action === 'edit' &&
+                {/* {action === 'edit' &&
                     <PasswordEdit
                         setPasswords={setPasswords}
                         setAction={setAction}

@@ -1,11 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('passwordVault', {
-    create: (passwordData) => {
+    create: async (passwordData) => {
         // Create a password in NeDB
-        ipcRenderer
-            .invoke('create-password', passwordData)
-            .then((result) => console.log(result))
+        return await ipcRenderer.invoke('create-password', passwordData)
     },
     listAll: async () => {
         // List all password names and IDs in NeDB

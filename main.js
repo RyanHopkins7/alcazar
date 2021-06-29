@@ -47,7 +47,9 @@ const passwordsDB = new Datastore({ filename: './passwords.nedb', autoload: true
 
 ipcMain.handle('create-password', async (event, passwordData) => {
     // TODO: check that no fields are empty
-    return await passwordsDB.insert(passwordData)
+    return await passwordsDB
+        .insert(passwordData)
+        .then(inserted => passwordsDB.findOne({ '_id': inserted['_id'] }, { name: 1, _id: 1 }))
 })
 
 ipcMain.handle('list-all-passwords', async (event) => {
@@ -56,5 +58,5 @@ ipcMain.handle('list-all-passwords', async (event) => {
 
 ipcMain.handle('view-password', async (event, id) => {
     // TODO: require authentication
-    return await passwordsDB.findOne({'_id': id})
+    return await passwordsDB.findOne({ '_id': id })
 })
