@@ -13,8 +13,9 @@ contextBridge.exposeInMainWorld('passwordVault', {
         // Retrieve a password from NeDB
         return id && await ipcRenderer.invoke('view-password', id)
     },
-    update: (id, passwordUpdateData) => {
+    update: async (id, passwordUpdateData) => {
         // Update a password in NeDB
+        return await ipcRenderer.invoke('edit-password', id, passwordUpdateData)
     },
     delete: async (id) => {
         // Delete a password from NeDB

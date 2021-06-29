@@ -44,6 +44,7 @@ app.on('window-all-closed', () => {
 const passwordsDB = new Datastore({ filename: './passwords.nedb', autoload: true })
 
 // IPC
+// TODO: names?
 
 ipcMain.handle('list-all-passwords', async (event) => {
     return await passwordsDB.find({}, { name: 1, _id: 1 })
@@ -60,6 +61,11 @@ ipcMain.handle('create-password', async (event, passwordData) => {
 ipcMain.handle('view-password', async (event, id) => {
     // TODO: require authentication
     return await passwordsDB.findOne({ '_id': id })
+})
+
+ipcMain.handle('edit-password', async (event, id, newPasswordData) => {
+    // TODO: require authentication
+    return await passwordsDB.update({ '_id': id }, newPasswordData)
 })
 
 ipcMain.handle('delete-password', async (event, id) => {
