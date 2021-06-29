@@ -24,10 +24,10 @@ function PasswordList(props) {
     return (
         <div className="password-list">
             {props.passwords && props.passwords.map(
-                (password, i) => (
+                (pw, i) => (
                     <PasswordListItem
-                        name={password.get('name')}
-                        id={password.get('_id')}
+                        name={pw.get('name')}
+                        id={pw.get('_id')}
                         action={props.action}
                         setSelectedPasswordID={props.setSelectedPasswordID}
                         key={i}>
@@ -62,7 +62,15 @@ function PasswordDisplay(props) {
                     {/* TODO */}
                     {/* <button onClick={() => props.setAction('edit')}>Edit</button> */}
                     {/* TODO: figure out why deleting a password doesn't collapse elements below it */}
-                    {/* <button onClick={() => props.setPasswords(props.passwords.delete(props.selectedPasswordID))}>Delete</button> */}
+                    <button onClick={async () => {
+                        // Delete a password
+                        if (await passwordVault.delete(props.selectedPasswordID)) {
+                            props.setPasswords(
+                                props.passwords.filter(pw => pw.get('_id') !== props.selectedPasswordID)
+                            )
+                        }
+                        // TODO: else, display an error message
+                    }}>Delete</button>
                 </div>
                 :
                 <div></div>
@@ -209,10 +217,10 @@ export default function App(props) {
 
                 {action === 'view' &&
                     <PasswordDisplay
-                        setPasswords={setPasswords}
-                        setAction={setAction}
+                        selectedPasswordID={selectedPasswordID}
                         passwords={passwords}
-                        selectedPasswordID={selectedPasswordID}>
+                        setPasswords={setPasswords}
+                        setAction={setAction}>
                     </PasswordDisplay>
                 }
 

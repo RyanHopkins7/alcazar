@@ -13,13 +13,11 @@ contextBridge.exposeInMainWorld('passwordVault', {
         // Retrieve a password from NeDB
         return id && await ipcRenderer.invoke('view-password', id)
     },
-    viewAll: () => {
-        // Retrieve all passwords from NeDB
-    },
     update: (id, passwordUpdateData) => {
         // Update a password in NeDB
     },
-    delete: (id) => {
+    delete: async (id) => {
         // Delete a password from NeDB
+        return await ipcRenderer.invoke('delete-password', id)
     },
 })
