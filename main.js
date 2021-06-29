@@ -51,5 +51,10 @@ ipcMain.handle('create-password', async (event, passwordData) => {
 })
 
 ipcMain.handle('list-all-passwords', async (event) => {
-    return await passwordsDB.find({}/* TODO: , { name: 1, _id: 1 }*/)
+    return await passwordsDB.find({}, { name: 1, _id: 1 })
+})
+
+ipcMain.handle('view-password', async (event, id) => {
+    // TODO: require authentication
+    return await passwordsDB.findOne({'_id': id})
 })
