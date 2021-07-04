@@ -1,6 +1,7 @@
 const { app, ipcMain, BrowserWindow } = require('electron')
 const Datastore = require('nedb-promises')
 const path = require('path')
+const { randomBytes } = require('crypto')
 
 const isDev = !app.isPackaged
 
@@ -43,32 +44,116 @@ app.on('window-all-closed', () => {
 
 const passwordsDB = new Datastore({ filename: './passwords.nedb', autoload: true })
 
-// IPC
-// TODO: names?
+// Authentication
 
-ipcMain.handle('list-all-passwords', async (event) => {
-    return await passwordsDB.find({}, { name: 1, _id: 1 })
+// INITIAL (INSECURE) AUTHENTICATION SCHEMA
+// NeDB will store a session ID with expiration time set 15 minutes after Authentication
+// Session ID will also be stored on the renderer in a cookie
+// Each IPC request requiring authentication will include the session ID 
+// The timestamp of the request will be compared to the expiration time
+// If the session ID has expried, require new authenticaion
+// New authentication will override the NeDB entry for the session ID
+// If the session ID is valid, allow the request
+
+// VULNERABILITIES
+// Attacker could modify the database file to fabricate a valid session
+
+const authenticateSession = async (sessionID) => {
+    // Check if session is valid and not expired
+    const session = await passwordsDB.findOne({ 
+        'type': 'sessionData' 
+    })
+
+    return session && session.sessionID === sessionID
+}
+
+// IPC
+// TODO: names? data model?
+
+ipcMain.handle('authenticate', async (pin) => {
+    // TODO
+    if (pin === '0000') {
+        // Create session and return token
+        const sessionBuffer = randomBytes(32)
+        const duration = 15 // Duration of validity of the session (minutes)
+
+        const status = await passwordsDB
+            .update({
+                'type': 'sessionData'
+            },
+            {
+                'type': 'sessionData',
+                'sessionID': sessionBuffer.toString('hex'),
+                'duration': duration,
+                'expiration': Date.now() + 60000 * duration // Is this secure?
+            },
+            {
+                'upsert': true
+            })
+
+        return {
+            'status': status,
+            'sessionID': sessionBuffer.toString('hex')
+        }
+    }
+
+    return {
+        'status': 0,
+        'sessionID': null
+    }
 })
 
-ipcMain.handle('create-password', async (event, passwordData) => {
+ipcMain.handle('list-all-passwords', async (event) => {
+    return await passwordsDB.find({ 
+        'type': 'password' 
+    }, { name: 1, _id: 1 })
+})
+
+ipcMain.handle('create-password', async (event, passwordData, sessionID) => {
     // TODO: check that no fields are empty
-    // TODO: require authentication
+    if (!await authenticateSession(sessionID)) {
+        return null
+    }
+
     return await passwordsDB
-        .insert(passwordData)
+        .insert({
+            'type': 'password',
+            ...passwordData
+        })
         .then(inserted => passwordsDB.findOne({ '_id': inserted['_id'] }, { name: 1, _id: 1 }))
 })
 
-ipcMain.handle('view-password', async (event, id) => {
-    // TODO: require authentication
-    return await passwordsDB.findOne({ '_id': id })
+ipcMain.handle('view-password', async (event, id, sessionID) => {
+    if (!await authenticateSession(sessionID)) {
+        return null
+    }
+
+    return await passwordsDB.findOne({ 
+        '_id': id,
+        'type': 'password'
+    })
 })
 
-ipcMain.handle('edit-password', async (event, id, newPasswordData) => {
+ipcMain.handle('edit-password', async (event, id, newPasswordData, sessionID) => {
+    if (!await authenticateSession(sessionID)) {
+        return null
+    }
+
     // TODO: require authentication
-    return await passwordsDB.update({ '_id': id }, newPasswordData)
+    return await passwordsDB.update({ 
+        '_id': id,
+        'type': 'password'
+    }, newPasswordData)
 })
 
-ipcMain.handle('delete-password', async (event, id) => {
+ipcMain.handle('delete-password', async (event, id, sessionID) => {
+    if (!await authenticateSession(sessionID)) {
+        return null
+    }
+
     // TODO: require authentication
-    return await passwordsDB.remove({ '_id': id })
+    return await passwordsDB.remove({ 
+        '_id': id,
+        'type': 'password'
+    })
 })
