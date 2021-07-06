@@ -48,7 +48,7 @@ const passwordsDB = new Datastore({ filename: './passwords.nedb', autoload: true
 
 // INITIAL (INSECURE) AUTHENTICATION SCHEMA
 // NeDB will store a session ID with expiration time set 15 minutes after Authentication
-// Session ID will also be stored on the renderer in a cookie
+// Session ID will also be stored on the renderer 
 // Each IPC request requiring authentication will include the session ID 
 // The timestamp of the request will be compared to the expiration time
 // If the session ID has expried, require new authenticaion
@@ -70,7 +70,7 @@ const authenticateSession = async (sessionID) => {
 // IPC
 // TODO: names? data model?
 
-ipcMain.handle('authenticate', async (pin) => {
+ipcMain.handle('authenticate', async (event, pin) => {
     // TODO
     if (pin === '0000') {
         // Create session and return token
@@ -103,7 +103,10 @@ ipcMain.handle('authenticate', async (pin) => {
     }
 })
 
+ipcMain.handle('authenticateSession', async (event, sessionID) => authenticateSession(sessionID))
+
 ipcMain.handle('list-all-passwords', async (event) => {
+    // TODO: should this require authentication?
     return await passwordsDB.find({ 
         'type': 'password' 
     }, { name: 1, _id: 1 })

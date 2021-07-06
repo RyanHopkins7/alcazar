@@ -5,6 +5,31 @@ import { List, fromJS } from 'immutable'
 // TODO: set up a local http server instead of using `file`
 // IDEA: password details displayed by slide out animation which shows that vault is unlocked/locked
 
+function AuthenticationPrompt(props) {
+    // TODO: should pop over entire screen like a prompt
+    const [pin, setPin] = useState('')
+
+    return (
+        <form className="authentication-form" onSubmit={async e => {
+            e.preventDefault()
+            
+            const authResult = await passwordVault.authenticate(pin)
+            props.setSessionID(authResult.sessionID)
+        }}>
+            <label className="form-input">
+                PIN:
+                <input
+                    type="password"
+                    name="pin"
+                    value={pin}
+                    onChange={e => setPin(e.target.value)} />
+            </label>
+
+            <input type="submit" value="Submit" />
+        </form>
+    )
+}
+
 function PasswordListItem(props) {
     // Password in PasswordList
     return (
@@ -35,7 +60,7 @@ function PasswordList(props) {
                 )
             ).toJS()}
 
-            <button onClick={() => props.setAction('create')}>Create</button>
+            <button onClick={() => props.authenticated && props.setAction('create')}>Create</button>
         </div>
     )
 }
@@ -46,9 +71,9 @@ function PasswordDisplay(props) {
 
     useEffect(async () => {
         // Retrieve selected password from NeDB
-        const selectedPassword = await passwordVault.view(props.selectedPasswordID)
+        const selectedPassword = await passwordVault.view(props.selectedPasswordID, props.sessionID)
         setDisplayedPassword(selectedPassword && fromJS(selectedPassword))
-    }, [props.selectedPasswordID])
+    }, [props.selectedPasswordID, props.sessionID])
 
     return (
         <div className="password-display">
@@ -62,7 +87,7 @@ function PasswordDisplay(props) {
                     <button onClick={() => props.setAction('edit')}>Edit</button>
                     <button onClick={async () => {
                         // Delete a password
-                        if (await passwordVault.delete(props.selectedPasswordID)) {
+                        if (await passwordVault.delete(props.selectedPasswordID, props.sessionID)) {
                             props.setPasswords(
                                 props.passwords.filter(pw => pw.get('_id') !== props.selectedPasswordID)
                             )
@@ -96,7 +121,7 @@ function PasswordCreate(props) {
                 e.preventDefault()
 
                 // Create new password from FormData
-                const newPassword = fromJS(await passwordVault.create(formData.toJS()))
+                const newPassword = fromJS(await passwordVault.create(formData.toJS(), props.sessionID))
 
                 props.setPasswords(props.passwords.push(newPassword))
 
@@ -145,7 +170,7 @@ function PasswordEdit(props) {
 
     useEffect(async () => {
         // Retrieve selected password from NeDB
-        const selectedPassword = await passwordVault.view(props.selectedPasswordID)
+        const selectedPassword = await passwordVault.view(props.selectedPasswordID, props.sessionID)
         setFormData(selectedPassword && fromJS(selectedPassword))
     }, [props.selectedPasswordID])
 
@@ -160,7 +185,7 @@ function PasswordEdit(props) {
                     e.preventDefault()
 
                     // Update password entry based on formData
-                    if (await passwordVault.update(props.selectedPasswordID, formData.toJS())) {
+                    if (await passwordVault.update(props.selectedPasswordID, formData.toJS(), props.sessionID)) {
                         props.setPasswords(
                             props.passwords
                                 .filter(pw => pw.get('_id') !== props.selectedPasswordID)
@@ -218,14 +243,21 @@ function PasswordEdit(props) {
 // }
 
 export default function App(props) {
+    const [authenticated, setAuthenticated] = useState(false)
     const [action, setAction] = useState('view') // What action is the user currently taking?
     const [selectedPasswordID, setSelectedPasswordID] = useState(null) // ID of password in NeDB
     const [passwords, setPasswords] = useState(List())
+    const [sessionID, setSessionID] = useState(null)
 
     useEffect(async () => {
         // Retrieve passwords from NeDB
         setPasswords(fromJS(await passwordVault.listAll()))
     }, [])
+
+    useEffect(async () => {
+        // Determine if user is authenticated
+        setAuthenticated(await passwordVault.authenticateSession(sessionID))
+    }, [sessionID])
 
     return (
         <div className="app">
@@ -235,6 +267,7 @@ export default function App(props) {
                 <PasswordList
                     action={action}
                     passwords={passwords}
+                    authenticated={authenticated}
                     setAction={setAction}
                     setSelectedPasswordID={setSelectedPasswordID}>
                 </PasswordList>
@@ -243,10 +276,17 @@ export default function App(props) {
             <div className="right-section">
                 {/* Right section used for user actions */}
 
+                {!authenticated &&
+                    <AuthenticationPrompt
+                        setSessionID={setSessionID}>
+                    </AuthenticationPrompt>
+                }
+
                 {action === 'view' &&
                     <PasswordDisplay
                         passwords={passwords}
                         selectedPasswordID={selectedPasswordID}
+                        sessionID={sessionID}
                         setPasswords={setPasswords}
                         setAction={setAction}>
                     </PasswordDisplay>
@@ -255,6 +295,7 @@ export default function App(props) {
                 {action === 'create' &&
                     <PasswordCreate
                         passwords={passwords}
+                        sessionID={sessionID}
                         setPasswords={setPasswords}
                         setAction={setAction}
                         setSelectedPasswordID={setSelectedPasswordID}>
@@ -265,6 +306,7 @@ export default function App(props) {
                     <PasswordEdit
                         passwords={passwords}
                         selectedPasswordID={selectedPasswordID}
+                        sessionID={sessionID}
                         setPasswords={setPasswords}
                         setAction={setAction}>
                     </PasswordEdit>
