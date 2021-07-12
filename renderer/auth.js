@@ -1,26 +1,39 @@
-import React, { useEffect, useState } from 'react'
-import { fromJS } from 'immutable'
+import React, { useEffect, useState, forwardRef, createRef } from 'react'
+import { List } from 'immutable'
 
 import './auth.scss'
 
-function PinCharInput(props) {
+const PinCharInput = forwardRef((props, ref) => {
+    useEffect(() => {
+        if (props.index === props.focusedIndex) {
+            ref.current.focus()
+        }
+    }, [props.focusedIndex])
+
     return (
         <input
             className="auth-pin-char-input"
             type="password"
             maxLength="1"
-            autoFocus={props.index === 0}
+            ref={ref}
             value={props.char}
+            onFocus={e => {
+                e.target.select()
+                props.setFocusedIndex(props.index)
+            }}
             onChange={e => {
                 props.setPin(prevPin => prevPin.set(props.index, e.target.value))
+                // TODO: make focused index rotation dynamic based on PIN size
+                props.setFocusedIndex(prevIndex => prevIndex < 3 ? prevIndex + 1 : 0)
             }}>
         </input>
     )
-}
+})
 
 export default function AuthenticationPrompt(props) {
-    // TODO: set initial empty pin based on size of actual pin
-    const [pin, setPin] = useState(fromJS(['', '', '', '']))
+    // TODO: set dynamically based on size of actual pin
+    const [pin, setPin] = useState(List(['', '', '', '']))
+    const [focusedIndex, setFocusedIndex] = useState(0)
 
     useEffect(async () => {
         if (pin.every(char => char !== '')) {
@@ -47,6 +60,9 @@ export default function AuthenticationPrompt(props) {
                                 key={i}
                                 index={i}
                                 char={char}
+                                focusedIndex={focusedIndex}
+                                setFocusedIndex={setFocusedIndex}
+                                ref={createRef()}
                                 setPin={setPin}>
                             </PinCharInput>).toJS()
                         }
