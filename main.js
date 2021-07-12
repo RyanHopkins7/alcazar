@@ -64,7 +64,7 @@ const authenticateSession = async (sessionID) => {
         'type': 'sessionData' 
     })
 
-    return session && session.sessionID === sessionID
+    return session && session.sessionID === sessionID && session.expiration >= Date.now() // Is this secure?
 }
 
 // IPC
@@ -85,7 +85,7 @@ ipcMain.handle('authenticate', async (event, pin) => {
                 'type': 'sessionData',
                 'sessionID': sessionBuffer.toString('hex'),
                 'duration': duration,
-                'expiration': Date.now() + 60000 * duration // Is this secure?
+                'expiration': Date.now() + /*60000 * */  duration // Is this secure?
             },
             {
                 'upsert': true
@@ -142,7 +142,6 @@ ipcMain.handle('edit-password', async (event, id, newPasswordData, sessionID) =>
         return null
     }
 
-    // TODO: require authentication
     return await passwordsDB.update({ 
         '_id': id,
         'type': 'password'

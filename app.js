@@ -6,13 +6,13 @@ import { List, fromJS } from 'immutable'
 // IDEA: password details displayed by slide out animation which shows that vault is unlocked/locked
 
 function AuthenticationPrompt(props) {
-    // TODO: should pop over entire screen like a prompt
+    // TODO: should pop over entire screen like a prompt(?)
     const [pin, setPin] = useState('')
 
     return (
         <form className="authentication-form" onSubmit={async e => {
             e.preventDefault()
-            
+
             const authResult = await passwordVault.authenticate(pin)
             props.setSessionID(authResult.sessionID)
         }}>
@@ -70,9 +70,15 @@ function PasswordDisplay(props) {
     const [displayedPassword, setDisplayedPassword] = useState(null)
 
     useEffect(async () => {
-        // Retrieve selected password from NeDB
-        const selectedPassword = await passwordVault.view(props.selectedPasswordID, props.sessionID)
-        setDisplayedPassword(selectedPassword && fromJS(selectedPassword))
+        if (await passwordVault.authenticateSession(props.sessionID)) {
+            // Retrieve selected password from NeDB
+            const selectedPassword = await passwordVault.view(props.selectedPasswordID, props.sessionID)
+            setDisplayedPassword(selectedPassword && fromJS(selectedPassword))
+
+            // TODO: display error message on failure
+        } else {
+            props.setSessionID(null)
+        }
     }, [props.selectedPasswordID, props.sessionID])
 
     return (
@@ -117,49 +123,57 @@ function PasswordCreate(props) {
 
     return (
         <div className="password-create">
-            <form className="password-create-form" onSubmit={async e => {
-                e.preventDefault()
+            {props.authenticated &&
+                <form className="password-create-form" onSubmit={async e => {
+                    e.preventDefault()
 
-                // Create new password from FormData
-                const newPassword = fromJS(await passwordVault.create(formData.toJS(), props.sessionID))
+                    if (await passwordVault.authenticateSession(props.sessionID)) {
+                        // Create new password from FormData
+                        const newPassword = fromJS(await passwordVault.create(formData.toJS(), props.sessionID))
 
-                props.setPasswords(props.passwords.push(newPassword))
+                        props.setPasswords(props.passwords.push(newPassword))
 
-                // Display newly created password
-                props.setSelectedPasswordID(newPassword.get('_id'))
-                props.setAction('view')
-            }}>
-                <label className="form-input">
-                    Name:
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.get('name')}
-                        onChange={e => handleInputChange(e)} />
-                </label>
+                        // Display newly created password
+                        props.setSelectedPasswordID(newPassword.get('_id'))
+                        props.setAction('view')
 
-                <label className="form-input">
-                    Username:
-                    <input
-                        type="text"
-                        name="username"
-                        value={formData.get('username')}
-                        onChange={e => handleInputChange(e)} />
-                </label>
+                        // TODO: display error message on failure
+                    } else {
+                        props.setSessionID(null)
+                    }
+                }}>
+                    <label className="form-input">
+                        Name:
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.get('name')}
+                            onChange={e => handleInputChange(e)} />
+                    </label>
 
-                <label className="form-input">
-                    Password:
-                    <input
-                        type="text"
-                        name="password"
-                        value={formData.get('password')}
-                        onChange={e => handleInputChange(e)} />
-                </label>
+                    <label className="form-input">
+                        Username:
+                        <input
+                            type="text"
+                            name="username"
+                            value={formData.get('username')}
+                            onChange={e => handleInputChange(e)} />
+                    </label>
 
-                <input type="submit" value="Submit" />
-                <button onClick={() => { props.setAction('view') }}>Cancel</button>
+                    <label className="form-input">
+                        Password:
+                        <input
+                            type="text"
+                            name="password"
+                            value={formData.get('password')}
+                            onChange={e => handleInputChange(e)} />
+                    </label>
 
-            </form>
+                    <input type="submit" value="Submit" />
+                    <button onClick={() => { props.setAction('view') }}>Cancel</button>
+
+                </form>
+            }
         </div>
     )
 }
@@ -243,6 +257,7 @@ function PasswordEdit(props) {
 // }
 
 export default function App(props) {
+    // TODO: what if session expires?
     const [authenticated, setAuthenticated] = useState(false)
     const [action, setAction] = useState('view') // What action is the user currently taking?
     const [selectedPasswordID, setSelectedPasswordID] = useState(null) // ID of password in NeDB
@@ -287,6 +302,7 @@ export default function App(props) {
                         passwords={passwords}
                         selectedPasswordID={selectedPasswordID}
                         sessionID={sessionID}
+                        setSessionID={setSessionID}
                         setPasswords={setPasswords}
                         setAction={setAction}>
                     </PasswordDisplay>
@@ -296,6 +312,8 @@ export default function App(props) {
                     <PasswordCreate
                         passwords={passwords}
                         sessionID={sessionID}
+                        authenticated={authenticated}
+                        setSessionID={setSessionID}
                         setPasswords={setPasswords}
                         setAction={setAction}
                         setSelectedPasswordID={setSelectedPasswordID}>
@@ -307,6 +325,7 @@ export default function App(props) {
                         passwords={passwords}
                         selectedPasswordID={selectedPasswordID}
                         sessionID={sessionID}
+                        setSessionID={setSessionID}
                         setPasswords={setPasswords}
                         setAction={setAction}>
                     </PasswordEdit>
