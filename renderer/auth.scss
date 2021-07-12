@@ -1,0 +1,27 @@
+// TODO: upon successful authentication, auth prompt should slide from left to right into 
+// right section (password display) in a snappy and satisfying animation
+
+.auth-prompt {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10;
+    background-color: #fff;
+}
+
+.auth-prompt .auth-form label {
+    display: block;
+}
+
+.auth-prompt .auth-form .error {
+    color: #f00;
+}
+
+.auth-prompt .auth-form .auth-pin-char-input {
+    display: inline-block;
+    width: 1em;
+}
+
+// TODO: if user leaves incorrect PIN for longer than 1500ms(?), PIN input should shake 
+// and display error message "incorrect PIN"

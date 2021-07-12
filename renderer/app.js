@@ -1,34 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { List, fromJS } from 'immutable'
 
+import AuthenticationPrompt from './auth'
+
 // TODO: enable auto compile on reload
 // TODO: set up a local http server instead of using `file`
 // IDEA: password details displayed by slide out animation which shows that vault is unlocked/locked
-
-function AuthenticationPrompt(props) {
-    // TODO: should pop over entire screen like a prompt(?)
-    const [pin, setPin] = useState('')
-
-    return (
-        <form className="authentication-form" onSubmit={async e => {
-            e.preventDefault()
-
-            const authResult = await passwordVault.authenticate(pin)
-            props.setSessionID(authResult.sessionID)
-        }}>
-            <label className="form-input">
-                PIN:
-                <input
-                    type="password"
-                    name="pin"
-                    value={pin}
-                    onChange={e => setPin(e.target.value)} />
-            </label>
-
-            <input type="submit" value="Submit" />
-        </form>
-    )
-}
 
 function PasswordListItem(props) {
     // Password in PasswordList
@@ -291,12 +268,6 @@ export default function App(props) {
             <div className="right-section">
                 {/* Right section used for user actions */}
 
-                {!authenticated &&
-                    <AuthenticationPrompt
-                        setSessionID={setSessionID}>
-                    </AuthenticationPrompt>
-                }
-
                 {action === 'view' &&
                     <PasswordDisplay
                         passwords={passwords}
@@ -331,6 +302,13 @@ export default function App(props) {
                     </PasswordEdit>
                 }
             </div>
+
+            {/* Authentication prompt pops over entire screen */}
+            {!authenticated &&
+                <AuthenticationPrompt
+                    setSessionID={setSessionID}>
+                </AuthenticationPrompt>
+            }
 
         </div>
     )

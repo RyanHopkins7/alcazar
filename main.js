@@ -71,6 +71,8 @@ const authenticateSession = async (sessionID) => {
 // TODO: names? data model?
 
 ipcMain.handle('authenticate', async (event, pin) => {
+    // TODO: protect against bruteforce attacks (rate limiting)
+
     // TODO
     if (pin === '0000') {
         // Create session and return token
@@ -85,7 +87,7 @@ ipcMain.handle('authenticate', async (event, pin) => {
                 'type': 'sessionData',
                 'sessionID': sessionBuffer.toString('hex'),
                 'duration': duration,
-                'expiration': Date.now() + /*60000 * */  duration // Is this secure?
+                'expiration': Date.now() + 60000 *  duration // Is this secure?
             },
             {
                 'upsert': true
