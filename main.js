@@ -46,18 +46,6 @@ const passwordsDB = new Datastore({ filename: './passwords.nedb', autoload: true
 
 // Authentication
 
-// INITIAL (INSECURE) AUTHENTICATION SCHEMA
-// NeDB will store a session ID with expiration time set 15 minutes after Authentication
-// Session ID will also be stored on the renderer 
-// Each IPC request requiring authentication will include the session ID 
-// The timestamp of the request will be compared to the expiration time
-// If the session ID has expried, require new authenticaion
-// New authentication will override the NeDB entry for the session ID
-// If the session ID is valid, allow the request
-
-// VULNERABILITIES
-// Attacker could modify the database file to fabricate a valid session
-
 const authenticateSession = async (sessionID) => {
     // Check if session is valid and not expired
     const session = await passwordsDB.findOne({ 
@@ -78,6 +66,7 @@ ipcMain.handle('authenticate', async (event, pin) => {
         // Create session and return token
         const sessionBuffer = randomBytes(32)
         const duration = 15 // Duration of validity of the session (minutes)
+        const expiration = Date.now() + 60000 * duration // Is this secure?
 
         const status = await passwordsDB
             .update({
@@ -87,7 +76,7 @@ ipcMain.handle('authenticate', async (event, pin) => {
                 'type': 'sessionData',
                 'sessionID': sessionBuffer.toString('hex'),
                 'duration': duration,
-                'expiration': Date.now() + 60000 *  duration // Is this secure?
+                'expiration': expiration
             },
             {
                 'upsert': true
@@ -95,7 +84,8 @@ ipcMain.handle('authenticate', async (event, pin) => {
 
         return {
             'status': status,
-            'sessionID': sessionBuffer.toString('hex')
+            'sessionID': sessionBuffer.toString('hex'),
+            'expiration': expiration
         }
     }
 
@@ -108,7 +98,7 @@ ipcMain.handle('authenticate', async (event, pin) => {
 ipcMain.handle('authenticateSession', async (event, sessionID) => authenticateSession(sessionID))
 
 ipcMain.handle('list-all-passwords', async (event) => {
-    // TODO: should this require authentication?
+    // TODO: should this require authentication? Yes, it should!
     return await passwordsDB.find({ 
         'type': 'password' 
     }, { name: 1, _id: 1 })

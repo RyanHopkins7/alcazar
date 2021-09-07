@@ -39,11 +39,14 @@ export default function AuthenticationPrompt(props) {
         if (pin.every(char => char !== '')) {
             const authResult = await passwordVault.authenticate(pin.join(''))
 
+            console.log(authResult)
+
             if (authResult.sessionID) {
                 // Authentication succeded
                 props.setSessionID(authResult.sessionID)
+                props.setSessionExpiration(authResult.expiration)
             } else {
-                // Authentication failed
+                // Authentication failed; clear PIN
                 setPin(prevPin => prevPin.map(_ => ''))
             }
         }

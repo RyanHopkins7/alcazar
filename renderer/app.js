@@ -240,6 +240,7 @@ export default function App(props) {
     const [selectedPasswordID, setSelectedPasswordID] = useState(null) // ID of password in NeDB
     const [passwords, setPasswords] = useState(List())
     const [sessionID, setSessionID] = useState(null)
+    const [sessionExpiration, setSessionExpiration] = useState(null)
 
     useEffect(async () => {
         // Retrieve passwords from NeDB
@@ -250,6 +251,15 @@ export default function App(props) {
         // Determine if user is authenticated
         setAuthenticated(await passwordVault.authenticateSession(sessionID))
     }, [sessionID])
+
+    useEffect(async () => {
+        // When session expires, unauthenticate
+        let remainingSessionTime = sessionExpiration - Date.now()
+
+        setTimeout(() => {
+            setSessionID(null)
+        }, remainingSessionTime < 0 ? 0 : remainingSessionTime)
+    }, [sessionExpiration])
 
     return (
         <div className="app">
@@ -306,7 +316,8 @@ export default function App(props) {
             {/* Authentication prompt pops over entire screen */}
             {!authenticated &&
                 <AuthenticationPrompt
-                    setSessionID={setSessionID}>
+                    setSessionID={setSessionID}
+                    setSessionExpiration={setSessionExpiration}>
                 </AuthenticationPrompt>
             }
 
