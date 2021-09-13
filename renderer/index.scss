@@ -9,22 +9,6 @@ html, body {
     overflow: hidden;
 }
 
-// TODO: Add padding
-.left-section, .right-section {
-    width: 50%;
-    display: inline-block;
-}
-
-.password-list-item {
-    cursor: pointer;
-    padding: 5px;
-    border-bottom: 1px solid black;
-}
-
-.password-list-item:hover {
-    background-color: rgba(0,0,0,.1);
-}
-
 .form-input {
     display: block;
 }

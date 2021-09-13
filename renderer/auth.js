@@ -32,14 +32,12 @@ const PinCharInput = forwardRef((props, ref) => {
 
 export default function AuthenticationPrompt(props) {
     // TODO: set dynamically based on size of actual pin
-    const [pin, setPin] = useState(List(['', '', '', '']))
+    const [pin, setPin] = useState(List(['0', '0', '0', '0']))
     const [focusedIndex, setFocusedIndex] = useState(0)
 
     useEffect(async () => {
         if (pin.every(char => char !== '')) {
             const authResult = await passwordVault.authenticate(pin.join(''))
-
-            console.log(authResult)
 
             if (authResult.sessionID) {
                 // Authentication succeded
