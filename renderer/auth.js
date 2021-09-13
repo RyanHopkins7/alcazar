@@ -37,7 +37,7 @@ export default function AuthenticationPrompt(props) {
 
     useEffect(async () => {
         if (pin.every(char => char !== '')) {
-            const authResult = await passwordVault.authenticate(pin.join(''))
+            const authResult = await vault.authenticate(pin.join(''))
 
             if (authResult.sessionID) {
                 // Authentication succeded

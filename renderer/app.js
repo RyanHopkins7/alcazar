@@ -6,29 +6,29 @@ import AuthenticationPrompt from './auth'
 // TODO: enable auto compile on reload
 // TODO: set up a local http server instead of using `file`
 
-function PasswordListItem(props) {
-    // Password in PasswordList
+function CredentialGridItem(props) {
+    // Credential in CredentialGrid
     return (
-        <div className="password-list-item"
+        <div className="credential-grid-item"
             onClick={() => {
                 props.setSelectedPasswordID(props.id)
             }}>{props.name}</div>
     )
 }
 
-function PasswordList(props) {
-    // Vertical scrolling list of all passwords
+function CredentialGrid(props) {
+    // Scrolling grid of all credentials
 
     return (
-        <div className="password-list">
-            {props.passwords && props.passwords.map(
-                (pw, i) => (
-                    <PasswordListItem
-                        name={pw.get('name')}
-                        id={pw.get('_id')}
+        <div className="credential-grid">
+            {props.credentials && props.credentials.map(
+                (cred, i) => (
+                    <CredentialGridItem
+                        name={cred.get('name')}
+                        id={cred.get('_id')}
                         setSelectedPasswordID={props.setSelectedPasswordID}
                         key={i}>
-                    </PasswordListItem>
+                    </CredentialGridItem>
                 )
             ).toJS()}
         </div>
@@ -38,18 +38,18 @@ function PasswordList(props) {
 export default function App(props) {
     const [authenticated, setAuthenticated] = useState(false)
     const [selectedPasswordID, setSelectedPasswordID] = useState(null) // ID of password in NeDB
-    const [passwords, setPasswords] = useState(List())
+    const [credentials, setCredentials] = useState(List())
     const [sessionID, setSessionID] = useState(null)
     const [sessionExpiration, setSessionExpiration] = useState(null)
 
     useEffect(async () => {
         // Retrieve passwords from NeDB
-        setPasswords(fromJS(await passwordVault.listAll()))
+        setCredentials(fromJS(await vault.listAll()))
     }, [])
 
     useEffect(async () => {
         // Determine if user is authenticated
-        setAuthenticated(await passwordVault.authenticateSession(sessionID))
+        setAuthenticated(await vault.authenticateSession(sessionID))
     }, [sessionID])
 
     useEffect(async () => {
@@ -63,11 +63,11 @@ export default function App(props) {
 
     return (
         <div className="app">
-            <PasswordList
-                passwords={passwords}
+            <CredentialGrid
+                credentials={credentials}
                 authenticated={authenticated}
                 setSelectedPasswordID={setSelectedPasswordID}>
-            </PasswordList>
+            </CredentialGrid>
 
             {/* Authentication prompt pops over entire screen */}
             {!authenticated &&

@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 // TODO: should communication with the main process be encrypted? probably not
-contextBridge.exposeInMainWorld('passwordVault', {
+contextBridge.exposeInMainWorld('vault', {
     listAll: async () => {
         // List all password names and IDs in NeDB
         return await ipcRenderer.invoke('list-all-passwords')
