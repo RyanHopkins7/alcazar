@@ -32,7 +32,7 @@ const PinCharInput = forwardRef((props, ref) => {
 
 export default function AuthenticationPrompt(props) {
     // TODO: set dynamically based on size of actual pin
-    const [pin, setPin] = useState(List(['0', '0', '0', '0']))
+    const [pin, setPin] = useState(List(['', '', '', '']))
     const [focusedIndex, setFocusedIndex] = useState(0)
 
     useEffect(async () => {
@@ -51,7 +51,7 @@ export default function AuthenticationPrompt(props) {
     }, [pin])
 
     return (
-        <div className="auth-prompt">
+        <div className="overlay auth-prompt">
             <form className="auth-form" onSubmit={e => e.preventDefault()}>
                 <label className="form-input">
                     <label htmlFor="authPinInput">Enter PIN</label>

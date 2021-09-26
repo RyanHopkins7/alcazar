@@ -3,8 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron')
 // TODO: should communication with the main process be encrypted? probably not
 contextBridge.exposeInMainWorld('vault', {
     listAll: async () => {
-        // List all password names and IDs in NeDB
-        return await ipcRenderer.invoke('list-all-passwords')
+        // List all secret names and IDs in NeDB
+        return await ipcRenderer.invoke('list-all-secrets')
     },
     authenticate: async (pin) => {
         // Create session with PIN
@@ -13,20 +13,20 @@ contextBridge.exposeInMainWorld('vault', {
     authenticateSession: async (sessionID) => {
         return await ipcRenderer.invoke('authenticateSession', sessionID)
     },
-    create: async (passwordData, sessionID) => {
-        // Create a password in NeDB
-        return await ipcRenderer.invoke('create-password', passwordData, sessionID)
+    create: async (secretData, sessionID) => {
+        // Create a secret in NeDB
+        return await ipcRenderer.invoke('create-secret', secretData, sessionID)
     },
-    view: async (id, sessionID) => {
-        // Retrieve a password from NeDB
-        return id && await ipcRenderer.invoke('view-password', id, sessionID)
+    read: async (id, sessionID) => {
+        // Retrieve a secret from NeDB
+        return id && await ipcRenderer.invoke('view-secret', id, sessionID)
     },
-    update: async (id, passwordUpdateData, sessionID) => {
-        // Update a password in NeDB
-        return await ipcRenderer.invoke('edit-password', id, passwordUpdateData, sessionID)
+    update: async (id, secretUpdateData, sessionID) => {
+        // Update a secret in NeDB
+        return await ipcRenderer.invoke('edit-secret', id, secretUpdateData, sessionID)
     },
     delete: async (id, sessionID) => {
-        // Delete a password from NeDB
-        return await ipcRenderer.invoke('delete-password', id, sessionID)
+        // Delete a secret from NeDB
+        return await ipcRenderer.invoke('delete-secret', id, sessionID)
     },
 })

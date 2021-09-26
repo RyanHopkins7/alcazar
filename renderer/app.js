@@ -1,34 +1,55 @@
 import React, { useState, useEffect } from 'react'
-import { List, fromJS } from 'immutable'
+import { List, Map, fromJS } from 'immutable'
 
 import AuthenticationPrompt from './auth'
 
 // TODO: enable auto compile on reload
 // TODO: set up a local http server instead of using `file`
 
-function CredentialGridItem(props) {
-    // Credential in CredentialGrid
+function SecretModal(props) {
+    // Overlay displays secret data
+    // console.log(props.selectedSecretData && props.selectedSecretData.mapKeys(k => k.toString()).toJS())
+
     return (
-        <div className="credential-grid-item"
-            onClick={() => {
-                props.setSelectedPasswordID(props.id)
-            }}>{props.name}</div>
+        <div className="overlay secret-modal">
+            <div className="secret-data">
+                {props.selectedSecretData && props.selectedSecretData.entrySeq().map(
+                    ([fieldName, data]) => (
+                        <p>{fieldName}: {data}</p>
+                    )
+                ).toJS()}
+            </div>
+        </div>
     )
 }
 
-function CredentialGrid(props) {
-    // Scrolling grid of all credentials
-
+function SecretGridItem(props) {
+    // Secret in SecretGrid
     return (
-        <div className="credential-grid">
-            {props.credentials && props.credentials.map(
-                (cred, i) => (
-                    <CredentialGridItem
-                        name={cred.get('name')}
-                        id={cred.get('_id')}
-                        setSelectedPasswordID={props.setSelectedPasswordID}
+        <div className="secret-grid-item"
+            onClick={() => {
+                props.setSelectedSecretID(props.id)
+            }}>
+
+            <div className="icon"></div>
+            <p>{props.name}</p>
+
+        </div>
+    )
+}
+
+function SecretGrid(props) {
+    // Scrolling grid of all secrets
+    return (
+        <div className="secret-grid">
+            {props.secrets && props.secrets.map(
+                (secret, i) => (
+                    <SecretGridItem
+                        name={secret.get('name')}
+                        id={secret.get('_id')}
+                        setSelectedSecretID={props.setSelectedSecretID}
                         key={i}>
-                    </CredentialGridItem>
+                    </SecretGridItem>
                 )
             ).toJS()}
         </div>
@@ -37,15 +58,21 @@ function CredentialGrid(props) {
 
 export default function App(props) {
     const [authenticated, setAuthenticated] = useState(false)
-    const [selectedPasswordID, setSelectedPasswordID] = useState(null) // ID of password in NeDB
-    const [credentials, setCredentials] = useState(List())
+    const [selectedSecretID, setSelectedSecretID] = useState(null) // ID of secret in NeDB
+    const [selectedSecretData, setSelectedSecretData] = useState(Map())
+    const [secrets, setSecrets] = useState(List())
     const [sessionID, setSessionID] = useState(null)
     const [sessionExpiration, setSessionExpiration] = useState(null)
 
     useEffect(async () => {
-        // Retrieve passwords from NeDB
-        setCredentials(fromJS(await vault.listAll()))
+        // Retrieve secrets from NeDB
+        setSecrets(fromJS(await vault.listAll()))
     }, [])
+
+    useEffect(async () => {
+        // Retrieve data from vault when a secret is selected
+        setSelectedSecretData(fromJS(await vault.read(selectedSecretID, sessionID)))
+    }, [selectedSecretID])
 
     useEffect(async () => {
         // Determine if user is authenticated
@@ -63,11 +90,18 @@ export default function App(props) {
 
     return (
         <div className="app">
-            <CredentialGrid
-                credentials={credentials}
+            <SecretGrid
+                secrets={secrets}
                 authenticated={authenticated}
-                setSelectedPasswordID={setSelectedPasswordID}>
-            </CredentialGrid>
+                setSelectedSecretID={setSelectedSecretID}>
+            </SecretGrid>
+
+            {/* When a secret is selected, overlay covers screen */}
+            {selectedSecretID &&
+                <SecretModal
+                    selectedSecretData={selectedSecretData}>
+                </SecretModal>
+            }
 
             {/* Authentication prompt pops over entire screen */}
             {!authenticated &&

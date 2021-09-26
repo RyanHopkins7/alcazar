@@ -13,6 +13,38 @@ html, body {
     display: block;
 }
 
-.credential-grid-item {
-    display: inline-block;
+.secret-grid-item {
+    display: inline-flex;
+    height: 100px;
+    width: 100px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.secret-grid-item:hover {
+    text-decoration: underline;
+    background: rgba(0,0,0,.05);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+.overlay.secret-modal {
+    background-color: rgba(0,0,0,.1);
+    align-items: center;
+    justify-content: center;
+    display: flex;
+
+    .secret-data {
+        background-color: white;
+        width: fit-content;
+        height: fit-content;
+        padding: 10px;
+    }
 }

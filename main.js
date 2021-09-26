@@ -97,14 +97,14 @@ ipcMain.handle('authenticate', async (event, pin) => {
 
 ipcMain.handle('authenticateSession', async (event, sessionID) => authenticateSession(sessionID))
 
-ipcMain.handle('list-all-passwords', async (event) => {
+ipcMain.handle('list-all-secrets', async (event) => {
     // TODO: should this require authentication? Yes, it should!
     return await passwordsDB.find({ 
         'type': 'password' 
     }, { name: 1, _id: 1 })
 })
 
-ipcMain.handle('create-password', async (event, passwordData, sessionID) => {
+ipcMain.handle('create-secret', async (event, passwordData, sessionID) => {
     // TODO: check that no fields are empty
     if (!await authenticateSession(sessionID)) {
         return null
@@ -118,7 +118,7 @@ ipcMain.handle('create-password', async (event, passwordData, sessionID) => {
         .then(inserted => passwordsDB.findOne({ '_id': inserted['_id'] }, { name: 1, _id: 1 }))
 })
 
-ipcMain.handle('view-password', async (event, id, sessionID) => {
+ipcMain.handle('view-secret', async (event, id, sessionID) => {
     if (!await authenticateSession(sessionID)) {
         return null
     }
@@ -129,7 +129,7 @@ ipcMain.handle('view-password', async (event, id, sessionID) => {
     })
 })
 
-ipcMain.handle('edit-password', async (event, id, newPasswordData, sessionID) => {
+ipcMain.handle('edit-secret', async (event, id, newPasswordData, sessionID) => {
     if (!await authenticateSession(sessionID)) {
         return null
     }
@@ -140,7 +140,7 @@ ipcMain.handle('edit-password', async (event, id, newPasswordData, sessionID) =>
     }, newPasswordData)
 })
 
-ipcMain.handle('delete-password', async (event, id, sessionID) => {
+ipcMain.handle('delete-secret', async (event, id, sessionID) => {
     if (!await authenticateSession(sessionID)) {
         return null
     }
